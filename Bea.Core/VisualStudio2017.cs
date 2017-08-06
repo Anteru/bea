@@ -224,15 +224,25 @@ namespace Bea.Core
 				return result;
 			}
 
-			public CxxProject (string sourcePath, string targetPath,
-				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : base (configurationPlatforms)
+			private CxxProject (string sourcePath, string targetPath, CxxNode node, ConfigurationPlatforms configurationPlatforms) : base (configurationPlatforms)
 			{
 				targetPath_ = System.IO.Path.Combine (targetPath, node.Name + ".vcxproj");
 				sourcePath_ = sourcePath;
 				Node = node;
+
 			}
 
-			public CxxExecutableNode Node { get; }
+			public CxxProject (string sourcePath, string targetPath,
+				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms)
+			{
+			}
+
+			public CxxProject (string sourcePath, string targetPath,
+				CxxLibraryNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms)
+			{
+			}
+
+			public CxxNode Node { get; }
 			public override string Path => targetPath_;
 
 			public override string Name => Node.Name;
@@ -341,9 +351,14 @@ namespace Bea.Core
 
 			public void Visit (CxxExecutableNode node)
 			{
-				var project = new CxxProject (
+				projects_ [node] = new CxxProject (
 					sourcePath_, targetPath_, node, configurationPlatforms_);
-				projects_ [node] = project;
+			}
+
+			public void Visit (CxxLibraryNode node)
+			{
+				projects_ [node] = new CxxProject (
+					sourcePath_, targetPath_, node, configurationPlatforms_);
 			}
 		}
 	}

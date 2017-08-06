@@ -11,6 +11,7 @@ namespace Bea.Core
 	internal interface IGenerator
 	{
 		void Visit (CxxExecutableNode node);
+		void Visit (CxxLibraryNode node);
 	}
 
 	public class Generator
@@ -26,6 +27,11 @@ namespace Bea.Core
 				switch (target) {
 					case Executable e: {
 							nodes.Add (new CxxExecutableNode (e));
+							break;
+						}
+
+					case Library l: {
+							nodes.Add (new CxxLibraryNode (l));
 							break;
 						}
 				}

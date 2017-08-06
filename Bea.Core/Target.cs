@@ -8,6 +8,8 @@ namespace Bea.Core
 {
 	public class Target
 	{
-		public List<string> SourceFiles { get; private set; } = new List<string>();
+		public List<string> SourceFiles { get; set; } = new List<string>();
+
+		public List<string> Dependencies { get; set; } = new List<string> ();
 	}
 }

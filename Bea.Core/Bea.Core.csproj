@@ -41,8 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CxxNode.cs" />
-    <Compile Include="Executable.cs" />
-    <Compile Include="ExecutableNode.cs" />
+    <Compile Include="CxxTargets.cs" />
+    <Compile Include="CxxNodes.cs" />
     <Compile Include="INode.cs" />
     <Compile Include="Property.cs" />
     <Compile Include="Target.cs" />

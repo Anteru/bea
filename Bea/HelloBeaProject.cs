@@ -9,3 +9,11 @@ public class HelloBea : Executable
 		OutputSuffix.Set ("Debug", "d");
 	}
 }
+
+public class HelloBeaLib : Library
+{
+	public HelloBeaLib () : base (LibraryType.Static)
+	{
+		SourceFiles.AddRange (new string [] { "HelloBeaLib.cpp" });
+	}
+}
