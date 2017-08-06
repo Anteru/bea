@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Bea.Core
@@ -57,21 +54,6 @@ namespace Bea.Core
 			SharedLibrary
 		}
 
-		public class PathHelper
-		{
-			public static string GetRelativePath (string source, string target)
-			{
-				if (! target.EndsWith ("\\")) {
-					target += '\\';
-				}
-				Uri path1 = new Uri (source);
-				Uri path2 = new Uri (target);
-				Uri diff = path2.MakeRelativeUri (path1);
-
-				return diff.ToString ().Replace ('/', '\\');
-			}
-		}
-
 		abstract class Project
 		{
 			protected ConfigurationPlatforms configurationPlatforms_;
@@ -80,10 +62,11 @@ namespace Bea.Core
 			
 			public abstract string Name { get; }
 			public abstract string Path { get; }
+			public abstract CxxTarget Target { get; }
 			public Guid Guid => guid_;
 			public ProjectType Type { get; }
 
-			public abstract void Write (IDictionary<INode, Project> nodeToProjectMap);
+			public abstract void Write (IDictionary<ITarget, Project> targetToProject);
 
 			public Project (ConfigurationPlatforms configurationPlatforms,
 				ProjectType type)
@@ -201,6 +184,14 @@ namespace Bea.Core
 
 					var preprocessorDefinitions = new List<string> ();
 
+					foreach (var def in Target.PreprocessorDefinitions.Definitions) {
+						if (def.Value != null) {
+							preprocessorDefinitions.Add ($"{def.Key}={def.Value}");
+						} else {
+							preprocessorDefinitions.Add ($"{def.Key}");
+						}
+					}
+
 					if (configPlatform.Platform == "x86") {
 						preprocessorDefinitions.Add ("WIN32");
 					}
@@ -275,9 +266,9 @@ namespace Bea.Core
 							new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
 							new XElement ("LinkIncremental", false));
 
-					if (Node.OutputName.HasConfiguration (configPlatform.Configuration) || Node.OutputSuffix.HasConfiguration (configPlatform.Configuration)) {
-						var name = Node.OutputName.Get (configPlatform.Configuration);
-						var suffix = Node.OutputSuffix.Get (configPlatform.Configuration);
+					if (Target.OutputName.HasConfiguration (configPlatform.Configuration) || Target.OutputSuffix.HasConfiguration (configPlatform.Configuration)) {
+						var name = Target.OutputName.Get (configPlatform.Configuration);
+						var suffix = Target.OutputSuffix.Get (configPlatform.Configuration);
 
 						element.Add (new XElement ("TargetName",
 							$"{name}{suffix}"));
@@ -289,11 +280,11 @@ namespace Bea.Core
 				return result;
 			}
 
-			protected XElement GetProjectReferences (IDictionary<INode, Project> nodeToProjectMapping)
+			protected XElement GetProjectReferences (IDictionary<ITarget, Project> nodeToProjectMapping)
 			{
 				var group = new XElement ("ItemGroup");
 
-				foreach (var dependency in Node.Dependencies) {
+				foreach (var dependency in Target.Dependencies) {
 					var project = nodeToProjectMapping [dependency];
 
 					var projectReference = new XElement ("ProjectReference",
@@ -307,30 +298,33 @@ namespace Bea.Core
 				return group;
 			}
 
-			private CxxProject (string sourcePath, string targetPath, CxxNode node, ConfigurationPlatforms configurationPlatforms, ProjectType type) : base (configurationPlatforms, type)
+			private CxxProject (string sourcePath, string targetPath, CxxTarget target, 
+				ConfigurationPlatforms configurationPlatforms, ProjectType type)
+				: base (configurationPlatforms, type)
 			{
-				targetPath_ = System.IO.Path.Combine (targetPath, node.Name + ".vcxproj");
+				targetPath_ = System.IO.Path.Combine (targetPath, target.Name + ".vcxproj");
 				sourcePath_ = sourcePath;
-				Node = node;
-
+				Target = target;
 			}
 
 			public CxxProject (string sourcePath, string targetPath,
-				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms, ProjectType.Executable)
+				CxxExecutableTarget target, ConfigurationPlatforms configurationPlatforms)
+				: this (sourcePath, targetPath, target as CxxTarget, configurationPlatforms, ProjectType.Executable)
 			{
 			}
 
 			public CxxProject (string sourcePath, string targetPath,
-				CxxLibraryNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms, ProjectType.StaticLibrary)
+				CxxLibraryTarget target, ConfigurationPlatforms configurationPlatforms) 
+				: this (sourcePath, targetPath, target as CxxTarget, configurationPlatforms, ProjectType.StaticLibrary)
 			{
 			}
 
-			public CxxNode Node { get; }
+			public override CxxTarget Target { get; }
 			public override string Path => targetPath_;
 
-			public override string Name => Node.Name;
+			public override string Name => Target.Name;
 
-			public override void Write (IDictionary<INode, Project> nodeToProjectMap)
+			public override void Write (IDictionary<ITarget, Project> nodeToProjectMap)
 			{
 				var project = new XElement ("Project",
 						new XAttribute ("DefaultTargets", "Build"),
@@ -343,12 +337,12 @@ namespace Bea.Core
 				project.AddRange (GetProjectImports ());
 				project.AddRange (GetCompileOptions ());
 				
-				if (Node.Dependencies.Count > 0) {
+				if (Target.Dependencies.Count > 0) {
 					project.Add (GetProjectReferences (nodeToProjectMap));
 				}
 
 				var sourceFileGroup = new XElement ("ItemGroup");
-				foreach (var sourceFile in Node.SourceFiles) {
+				foreach (var sourceFile in Target.SourceFiles) {
 					sourceFileGroup.Add (new XElement ("ClCompile",
 						new XAttribute ("Include", System.IO.Path.Combine (sourcePath_, sourceFile))));
 				}
@@ -379,7 +373,7 @@ namespace Bea.Core
 
 			private ConfigurationPlatforms configurationPlatforms_ = new ConfigurationPlatforms ();
 
-			private Dictionary<INode, Project> projects_ = new Dictionary<INode, Project>();
+			private Dictionary<ITarget, Project> projects_ = new Dictionary<ITarget, Project>();
 	
 			public Generator (string sourcePath, string targetPath)
 			{
@@ -401,7 +395,7 @@ namespace Bea.Core
 
 					foreach (var project in projects_.Values) {
 						// C++ project GUID: 8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942
-						var relativeProjectPath = project.Path.Substring (targetPath_.Length).TrimStart (new char [] { '\\' });
+						var relativeProjectPath = PathHelper.GetRelativePath (project.Path, targetPath_);
 						var projectGuid = project.Guid.ToString ().ToUpper ();
 						tw.WriteLine ($"Project(\"{{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}}\") = \"{project.Name}\", \"{relativeProjectPath}\", \"{{{projectGuid}}}\"");
 						tw.WriteLine ("EndProject");
@@ -436,16 +430,16 @@ namespace Bea.Core
 				}
 			}
 
-			public void Visit (CxxExecutableNode node)
+			public void Visit (CxxExecutableTarget target)
 			{
-				projects_ [node] = new CxxProject (
-					sourcePath_, targetPath_, node, configurationPlatforms_);
+				projects_ [target] = new CxxProject (
+					sourcePath_, targetPath_, target, configurationPlatforms_);
 			}
 
-			public void Visit (CxxLibraryNode node)
+			public void Visit (CxxLibraryTarget target)
 			{
-				projects_ [node] = new CxxProject (
-					sourcePath_, targetPath_, node, configurationPlatforms_);
+				projects_ [target] = new CxxProject (
+					sourcePath_, targetPath_, target, configurationPlatforms_);
 			}
 		}
 	}

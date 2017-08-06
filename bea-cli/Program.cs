@@ -1,11 +1,8 @@
-﻿using Bea.Core;
-using Microsoft.CSharp;
+﻿using Microsoft.CSharp;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bea.Build;
 
 namespace Bea
 {
@@ -44,6 +41,8 @@ namespace Bea
 				{
 					if (typeof(Target).IsAssignableFrom (type))
 					{
+						Console.WriteLine ($"Registering target '{type.FullName}'");
+
 						targets.Add (Activator.CreateInstance(type) as Target);
 					}
 				}

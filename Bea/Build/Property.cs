@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bea.Core
+namespace Bea.Build
 {
 	/// <summary>
 	/// A build property. These can be configuration-specific (for instance,
@@ -21,6 +21,11 @@ namespace Bea.Core
 		public Property (T value)
 		{
 			Value = value;
+		}
+
+		public Property ()
+		{
+			Value = default (T);
 		}
 
 		public void Set (string config, T value)

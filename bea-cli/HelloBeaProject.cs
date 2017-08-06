@@ -1,4 +1,4 @@
-﻿using Bea.Core;
+﻿using Bea.Build;
 
 public class HelloBea : Executable
 {
@@ -6,6 +6,7 @@ public class HelloBea : Executable
 	{
 		SourceFiles.AddRange(new string[] { "HelloBeaMain.cpp" });
 
+		PreprocessorDefinitions.Add ("BUILD_BEA", 1);
 		OutputSuffix.Set ("Debug", "d");
 		Dependencies.Add ("HelloBeaLib");
 	}

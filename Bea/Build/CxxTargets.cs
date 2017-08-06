@@ -1,9 +1,10 @@
-﻿namespace Bea.Core
+﻿namespace Bea.Build
 {
 	public class CxxBinary : Target
 	{
 		public Property<string> OutputName { get; set; }
 		public Property<string> OutputSuffix { get; } = new Property<string> ("");
+		public PreprocessorDefinitions PreprocessorDefinitions { get; } = new PreprocessorDefinitions ();
 
 		public CxxBinary ()
 		{

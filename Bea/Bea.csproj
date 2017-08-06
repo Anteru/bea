@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D9DF1562-EC36-48E9-A4F3-5625DE874066}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Bea</RootNamespace>
-    <AssemblyName>Bea</AssemblyName>
+    <ProjectGuid>{99EE47B7-BA31-43AD-B8DA-BF9585797114}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Bea.Core</RootNamespace>
+    <AssemblyName>Bea.Core</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -42,30 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="HelloBeaProject.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Compile Include="Program.cs" />
+    <Compile Include="Build\PreprocessorDefinitions.cs" />
+    <Compile Include="Core\CxxLibraryTarget.cs" />
+    <Compile Include="Core\CxxTarget.cs" />
+    <Compile Include="Build\CxxTargets.cs" />
+    <Compile Include="Core\CxxExecutableTarget.cs" />
+    <Compile Include="Core\IGenerator.cs" />
+    <Compile Include="Core\ITarget.cs" />
+    <Compile Include="Build\Property.cs" />
+    <Compile Include="Build\Target.cs" />
+    <Compile Include="Core\PathHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bea.Core\Bea.Core.csproj">
-      <Project>{99ee47b7-ba31-43ad-b8da-bf9585797114}</Project>
-      <Name>Bea.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="HelloBeaMain.cpp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="HelloBeaLib.cpp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Compile Include="Core\VisualStudio2017.cs" />
+    <Compile Include="Build\Generator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

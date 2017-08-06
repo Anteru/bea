@@ -1,19 +1,9 @@
-﻿using System;
+﻿using Bea.Core;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
-namespace Bea.Core
+namespace Bea.Build
 {
-	internal interface IGenerator
-	{
-		void Visit (CxxExecutableNode node);
-		void Visit (CxxLibraryNode node);
-	}
-
 	public class Generator
 	{
 		public void Generate (IEnumerable<Target> targets, string sourcePath, string targetPath)
@@ -21,17 +11,17 @@ namespace Bea.Core
 			sourcePath = Path.GetFullPath (sourcePath);
 			targetPath = Path.GetFullPath (targetPath);
 
-			Dictionary<string, INode> nodes = new Dictionary<string, INode> ();
+			Dictionary<string, ITarget> nodes = new Dictionary<string, ITarget> ();
 
 			foreach (var target in targets) {
 				switch (target) {
 					case Executable e: {
-							nodes [e.Name] = new CxxExecutableNode (e);
+							nodes [e.Name] = new CxxExecutableTarget (e);
 							break;
 						}
 
 					case Library l: {
-							nodes [l.Name] = new CxxLibraryNode (l);
+							nodes [l.Name] = new CxxLibraryTarget (l);
 							break;
 						}
 				}
@@ -41,7 +31,7 @@ namespace Bea.Core
 				node.LinkDependencies (nodes);
 			}
 
-			var vsGen = new VisualStudio2017.Generator (sourcePath, targetPath);
+			var vsGen = new Bea.Core.VisualStudio2017.Generator (sourcePath, targetPath);
 			foreach (var node in nodes) {
 				node.Value.Accept (vsGen);
 			}

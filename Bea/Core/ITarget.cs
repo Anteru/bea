@@ -2,16 +2,17 @@
 
 namespace Bea.Core
 {
+
 	/// <summary>
 	/// A node in the build graph
 	/// </summary>
-	internal interface INode
+	internal interface ITarget
 	{
 		void Accept (IGenerator generator);
 
 		string Name { get; }
-		List<INode> Dependencies { get; }
+		List<ITarget> Dependencies { get; }
 
-		void LinkDependencies (IDictionary<string, INode> nodes);
+		void LinkDependencies (IDictionary<string, ITarget> targets);
 	}
 }
