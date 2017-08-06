@@ -1,4 +1,6 @@
-﻿namespace Bea.Core
+﻿using System.Collections.Generic;
+
+namespace Bea.Core
 {
 	/// <summary>
 	/// A node in the build graph
@@ -8,5 +10,8 @@
 		void Accept (IGenerator generator);
 
 		string Name { get; }
+		List<INode> Dependencies { get; }
+
+		void LinkDependencies (IDictionary<string, INode> nodes);
 	}
 }

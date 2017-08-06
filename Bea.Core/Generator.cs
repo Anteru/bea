@@ -21,25 +21,29 @@ namespace Bea.Core
 			sourcePath = Path.GetFullPath (sourcePath);
 			targetPath = Path.GetFullPath (targetPath);
 
-			List<INode> nodes = new List<INode> ();
+			Dictionary<string, INode> nodes = new Dictionary<string, INode> ();
 
 			foreach (var target in targets) {
 				switch (target) {
 					case Executable e: {
-							nodes.Add (new CxxExecutableNode (e));
+							nodes [e.Name] = new CxxExecutableNode (e);
 							break;
 						}
 
 					case Library l: {
-							nodes.Add (new CxxLibraryNode (l));
+							nodes [l.Name] = new CxxLibraryNode (l);
 							break;
 						}
 				}
 			}
 
+			foreach (var node in nodes.Values) {
+				node.LinkDependencies (nodes);
+			}
+
 			var vsGen = new VisualStudio2017.Generator (sourcePath, targetPath);
 			foreach (var node in nodes) {
-				node.Accept (vsGen);
+				node.Value.Accept (vsGen);
 			}
 
 			vsGen.Generate ();

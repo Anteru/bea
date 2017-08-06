@@ -7,6 +7,7 @@ public class HelloBea : Executable
 		SourceFiles.AddRange(new string[] { "HelloBeaMain.cpp" });
 
 		OutputSuffix.Set ("Debug", "d");
+		Dependencies.Add ("HelloBeaLib");
 	}
 }
 

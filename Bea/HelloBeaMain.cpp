@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 
+const char* GetStr ();
+
 int main ()
 {
-	std::cout << "Hello Bea!" << std::endl;
+	std::cout << GetStr () << std::endl;
 }

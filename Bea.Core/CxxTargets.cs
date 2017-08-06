@@ -7,7 +7,8 @@
 
 		public CxxBinary ()
 		{
-			OutputName = new Property<string> (this.GetType ().FullName);
+			Name = this.GetType ().FullName;
+			OutputName = new Property<string> (Name);
 		}
 	}
 

@@ -50,6 +50,28 @@ namespace Bea.Core
 			}
 		}
 
+		enum ProjectType
+		{
+			Executable,
+			StaticLibrary,
+			SharedLibrary
+		}
+
+		public class PathHelper
+		{
+			public static string GetRelativePath (string source, string target)
+			{
+				if (! target.EndsWith ("\\")) {
+					target += '\\';
+				}
+				Uri path1 = new Uri (source);
+				Uri path2 = new Uri (target);
+				Uri diff = path2.MakeRelativeUri (path1);
+
+				return diff.ToString ().Replace ('/', '\\');
+			}
+		}
+
 		abstract class Project
 		{
 			protected ConfigurationPlatforms configurationPlatforms_;
@@ -59,12 +81,15 @@ namespace Bea.Core
 			public abstract string Name { get; }
 			public abstract string Path { get; }
 			public Guid Guid => guid_;
+			public ProjectType Type { get; }
 
-			public abstract void Write ();
+			public abstract void Write (IDictionary<INode, Project> nodeToProjectMap);
 
-			public Project (ConfigurationPlatforms configurationPlatforms)
+			public Project (ConfigurationPlatforms configurationPlatforms,
+				ProjectType type)
 			{
 				configurationPlatforms_ = configurationPlatforms;
+				Type = type;
 			}
 
 			protected XElement GetProjectConfigurations ()
@@ -104,9 +129,20 @@ namespace Bea.Core
 					var element = new XElement ("PropertyGroup",
 							new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
 							new XAttribute ("Label", "Configuration"),
-							new XElement ("ConfigurationType", "Application"),
 							new XElement ("PlatformToolset", "v141"),
 							new XElement ("CharacterSet", "Unicode"));
+					
+					switch (Type) {
+						case ProjectType.Executable: {
+								element.Add (new XElement ("ConfigurationType", "Application"));
+								break;
+							}
+
+						case ProjectType.StaticLibrary: {
+								element.Add (new XElement ("ConfigurationType", "StaticLibrary"));
+								break;
+							}
+					}
 
 					if (IsDebugConfiguration (configPlatform.Configuration)) {
 						element.Add (new XElement ("UseDebugLibraries", "true"));
@@ -159,25 +195,54 @@ namespace Bea.Core
 				List<XElement> result = new List<XElement> ();
 
 				foreach (var configPlatform in configurationPlatforms_.Enumerate ()) {
-					var options = new XElement ("ClCompile",
+					var clOptions = new XElement ("ClCompile",
 								new XElement ("PrecompiledHeader"),
 								new XElement ("WarningLevel", "Level3"));
 
-					if (IsDebugConfiguration (configPlatform.Configuration)) {
-						options.Add (new XElement ("Optimization", "Disabled"));
-						options.Add (new XElement ("PreprocessorDefinitions",
-							"WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)"));
-					} else {
-						options.Add (new XElement ("Optimization", "MaxSpeed"));
-						options.Add (new XElement ("FunctionLevelLinking", true));
-						options.Add (new XElement ("IntrinsicFunctions", true));
-						options.Add (new XElement ("PreprocessorDefinitions",
-							"WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)"));
+					var preprocessorDefinitions = new List<string> ();
+
+					if (configPlatform.Platform == "x86") {
+						preprocessorDefinitions.Add ("WIN32");
 					}
 
-					result.Add (new XElement ("ItemDefinitionGroup",
-						new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
-						options));
+					if (IsDebugConfiguration (configPlatform.Configuration)) {
+						clOptions.Add (new XElement ("Optimization", "Disabled"));
+						preprocessorDefinitions.Add ("_DEBUG");
+					} else {
+						clOptions.Add (new XElement ("Optimization", "MaxSpeed"));
+						clOptions.Add (new XElement ("FunctionLevelLinking", true));
+						clOptions.Add (new XElement ("IntrinsicFunctions", true));
+						preprocessorDefinitions.Add ("NDEBUG");
+					}
+
+					var defGroup = new XElement ("ItemDefinitionGroup",
+						new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"));
+
+					if (Type == ProjectType.StaticLibrary) {
+						preprocessorDefinitions.Add ("_LIB");
+
+						var linkOptions = new XElement ("Link",
+							new XElement ("SubSystem", "Windows"));
+
+						if (IsDebugConfiguration (configPlatform.Configuration)) {
+							//
+						} else {
+							linkOptions.Add (
+								new XElement ("EnableCOMDATFolding", true),
+								new XElement ("OptimizeReferences", true));
+						}
+
+						defGroup.Add (linkOptions);
+					}
+
+					preprocessorDefinitions.Add ("%(PreprocessorDefinitions)");
+
+					clOptions.Add (new XElement ("PreprocessorDefinitions",
+						String.Join<string> (";", preprocessorDefinitions))); 
+
+					defGroup.Add (clOptions);
+
+					result.Add (defGroup);
 				}
 
 				return result;
@@ -224,7 +289,25 @@ namespace Bea.Core
 				return result;
 			}
 
-			private CxxProject (string sourcePath, string targetPath, CxxNode node, ConfigurationPlatforms configurationPlatforms) : base (configurationPlatforms)
+			protected XElement GetProjectReferences (IDictionary<INode, Project> nodeToProjectMapping)
+			{
+				var group = new XElement ("ItemGroup");
+
+				foreach (var dependency in Node.Dependencies) {
+					var project = nodeToProjectMapping [dependency];
+
+					var projectReference = new XElement ("ProjectReference",
+						new XAttribute ("Include", PathHelper.GetRelativePath (project.Path, System.IO.Path.GetDirectoryName (Path))),
+						new XElement ("Project",
+							$"{{{project.Guid}}}"));
+
+					group.Add (projectReference);
+				}
+
+				return group;
+			}
+
+			private CxxProject (string sourcePath, string targetPath, CxxNode node, ConfigurationPlatforms configurationPlatforms, ProjectType type) : base (configurationPlatforms, type)
 			{
 				targetPath_ = System.IO.Path.Combine (targetPath, node.Name + ".vcxproj");
 				sourcePath_ = sourcePath;
@@ -233,12 +316,12 @@ namespace Bea.Core
 			}
 
 			public CxxProject (string sourcePath, string targetPath,
-				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms)
+				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms, ProjectType.Executable)
 			{
 			}
 
 			public CxxProject (string sourcePath, string targetPath,
-				CxxLibraryNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms)
+				CxxLibraryNode node, ConfigurationPlatforms configurationPlatforms) : this (sourcePath, targetPath, node as CxxNode, configurationPlatforms, ProjectType.StaticLibrary)
 			{
 			}
 
@@ -247,7 +330,7 @@ namespace Bea.Core
 
 			public override string Name => Node.Name;
 
-			public override void Write ()
+			public override void Write (IDictionary<INode, Project> nodeToProjectMap)
 			{
 				var project = new XElement ("Project",
 						new XAttribute ("DefaultTargets", "Build"),
@@ -259,6 +342,10 @@ namespace Bea.Core
 				project.AddRange (GetLinkSettings ());
 				project.AddRange (GetProjectImports ());
 				project.AddRange (GetCompileOptions ());
+				
+				if (Node.Dependencies.Count > 0) {
+					project.Add (GetProjectReferences (nodeToProjectMap));
+				}
 
 				var sourceFileGroup = new XElement ("ItemGroup");
 				foreach (var sourceFile in Node.SourceFiles) {
@@ -303,7 +390,7 @@ namespace Bea.Core
 			public void Generate ()
 			{
 				foreach (var project in projects_.Values) {
-					project.Write ();
+					project.Write (projects_);
 				}
 
 				using (TextWriter tw = File.CreateText (Path.Combine (targetPath_, "test.sln"))) {
