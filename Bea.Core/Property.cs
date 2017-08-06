@@ -6,40 +6,52 @@ using System.Threading.Tasks;
 
 namespace Bea.Core
 {
+	/// <summary>
+	/// A build property. These can be configuration-specific (for instance,
+	/// a project may choose to have a different name for debug variants).
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class Property<T>
 	{
-		public void Set (T value)
+		public T Value
 		{
-			store_ ["_default"] = value;
+			get;
 		}
 
-		public void Set (T value, string config)
+		public Property (T value)
 		{
-			store_ [config] = value;
+			Value = value;
 		}
 
-		public T Get ()
+		public void Set (string config, T value)
 		{
-			if (store_.TryGetValue ("_default", out T v))
-			{
-				return v;
-			} else
-			{
-				return default (T);
+			if (config == null) {
+				throw new ArgumentNullException (nameof (config));
 			}
+
+			if (variants_ == null) {
+				variants_ = new Dictionary<string, T> ();
+			}
+
+			variants_ [config] = value;
 		}
 
 		public T Get (string config)
 		{
-			if (store_.TryGetValue (config, out T v))
-			{
-				return v;
-			} else
-			{
-				return default (T);
+			if (variants_?.ContainsKey (config) ?? false) {
+				return variants_ [config];
+			} else {
+				return Value;
 			}
 		}
 
-		private Dictionary<string, T> store_ = new Dictionary<string, T> ();
+		public bool HasConfiguration (string config)
+		{
+			return variants_?.ContainsKey (config) ?? false;
+		}
+
+		public ICollection<string> Configurations => variants_.Keys;
+
+		private Dictionary<string, T> variants_;
 	}
 }

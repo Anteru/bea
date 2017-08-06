@@ -10,7 +10,7 @@ namespace Bea.Core
 {
 	internal interface IGenerator
 	{
-		void Visit (ExecutableNode node);
+		void Visit (CxxExecutableNode node);
 	}
 
 	public class Generator
@@ -25,7 +25,7 @@ namespace Bea.Core
 			foreach (var target in targets) {
 				switch (target) {
 					case Executable e: {
-							nodes.Add (new ExecutableNode (e));
+							nodes.Add (new CxxExecutableNode (e));
 							break;
 						}
 				}

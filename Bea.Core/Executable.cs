@@ -2,11 +2,12 @@
 {
 	public class Executable : Target
 	{
-		public Property<string> ExecutableName { get; set; } = new Property<string> ();
+		public Property<string> OutputName { get; set; }
+		public Property<string> OutputSuffix { get; } = new Property<string> ("");
 
 		public Executable() : base()
 		{
-			ExecutableName.Set (this.GetType().FullName);
+			OutputName = new Property<string> (this.GetType().FullName);
 		}
 	}
 }

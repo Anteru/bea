@@ -52,10 +52,10 @@ namespace Bea.Core
 
 		abstract class Project
 		{
-			ConfigurationPlatforms configurationPlatforms_;
+			protected ConfigurationPlatforms configurationPlatforms_;
 
 			protected readonly Guid guid_ = Guid.NewGuid ();
-
+			
 			public abstract string Name { get; }
 			public abstract string Path { get; }
 			public Guid Guid => guid_;
@@ -154,21 +154,6 @@ namespace Bea.Core
 				return result;
 			}
 
-			protected IEnumerable<XElement> GetLinkSettings ()
-			{
-				List<XElement> result = new List<XElement> ();
-
-				foreach (var configPlatform in configurationPlatforms_.Enumerate ()) {
-					var element = new XElement ("PropertyGroup",
-							new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
-							new XElement ("LinkIncremental", false));
-
-					result.Add (element);
-				}
-
-				return result;
-			}
-
 			protected IEnumerable<XElement> GetCompileOptions ()
 			{
 				List<XElement> result = new List<XElement> ();
@@ -214,20 +199,43 @@ namespace Bea.Core
 			}
 		}
 
-		class ExecutableProject : Project
+		class CxxProject : Project
 		{
-			public ExecutableProject (string sourcePath, string targetPath,
-				ExecutableNode node, ConfigurationPlatforms configurationPlatforms) : base (configurationPlatforms)
+			protected IEnumerable<XElement> GetLinkSettings ()
 			{
-				targetPath_ = System.IO.Path.Combine (targetPath, node.Executable.ExecutableName.Get () + ".vcxproj");
+				List<XElement> result = new List<XElement> ();
+
+				foreach (var configPlatform in configurationPlatforms_.Enumerate ()) {
+					var element = new XElement ("PropertyGroup",
+							new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
+							new XElement ("LinkIncremental", false));
+
+					if (Node.OutputName.HasConfiguration (configPlatform.Configuration) || Node.OutputSuffix.HasConfiguration (configPlatform.Configuration)) {
+						var name = Node.OutputName.Get (configPlatform.Configuration);
+						var suffix = Node.OutputSuffix.Get (configPlatform.Configuration);
+
+						element.Add (new XElement ("TargetName",
+							$"{name}{suffix}"));
+					}
+
+					result.Add (element);
+				}
+
+				return result;
+			}
+
+			public CxxProject (string sourcePath, string targetPath,
+				CxxExecutableNode node, ConfigurationPlatforms configurationPlatforms) : base (configurationPlatforms)
+			{
+				targetPath_ = System.IO.Path.Combine (targetPath, node.Name + ".vcxproj");
 				sourcePath_ = sourcePath;
 				Node = node;
 			}
 
-			public ExecutableNode Node { get; }
+			public CxxExecutableNode Node { get; }
 			public override string Path => targetPath_;
 
-			public override string Name => Node.Executable.ExecutableName.Get ();
+			public override string Name => Node.Name;
 
 			public override void Write ()
 			{
@@ -238,11 +246,12 @@ namespace Bea.Core
 				project.AddRange (GetProjectConfigurationProperties ());
 				project.Add (GetProjectConfigurations ());
 				project.Add (GetProjectGlobals ());
+				project.AddRange (GetLinkSettings ());
 				project.AddRange (GetProjectImports ());
 				project.AddRange (GetCompileOptions ());
 
 				var sourceFileGroup = new XElement ("ItemGroup");
-				foreach (var sourceFile in Node.Executable.SourceFiles) {
+				foreach (var sourceFile in Node.SourceFiles) {
 					sourceFileGroup.Add (new XElement ("ClCompile",
 						new XAttribute ("Include", System.IO.Path.Combine (sourcePath_, sourceFile))));
 				}
@@ -330,9 +339,9 @@ namespace Bea.Core
 				}
 			}
 
-			public void Visit (ExecutableNode node)
+			public void Visit (CxxExecutableNode node)
 			{
-				var project = new ExecutableProject (
+				var project = new CxxProject (
 					sourcePath_, targetPath_, node, configurationPlatforms_);
 				projects_ [node] = project;
 			}
