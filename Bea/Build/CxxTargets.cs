@@ -6,15 +6,18 @@
 		public Property<string> OutputSuffix { get; } = new Property<string> ("");
 		public PreprocessorDefinitions PreprocessorDefinitions { get; } = new PreprocessorDefinitions ();
 
-		public CxxBinary ()
+		public CxxBinary (string name)
 		{
-			Name = this.GetType ().FullName;
+			Name = name;
 			OutputName = new Property<string> (Name);
 		}
 	}
 
 	public class Executable : CxxBinary
 	{
+		public Executable (string name) : base (name)
+		{
+		}
 	}
 
 	public enum LibraryType
@@ -26,7 +29,7 @@
 	public class Library : CxxBinary
 	{
 		public LibraryType Type { get; }
-		public Library (LibraryType type)
+		public Library (string name, LibraryType type) : base (name)
 		{
 			Type = type;
 		}

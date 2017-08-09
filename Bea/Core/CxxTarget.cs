@@ -29,7 +29,14 @@ namespace Bea.Core
 			SourceFiles.Sort ();
 
 			foreach (var dependency in target.Dependencies) {
-				unlinkedDependencies_.Add (dependency);
+				switch (dependency.Value) {
+					case string s:
+						unlinkedDependencies_.Add (s);
+						break;
+					case Target t:
+						unlinkedDependencies_.Add (t.Name);
+						break;
+				}
 			}
 
 			PreprocessorDefinitions = target.PreprocessorDefinitions;
