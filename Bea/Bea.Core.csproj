@@ -7,7 +7,7 @@
     <ProjectGuid>{99EE47B7-BA31-43AD-B8DA-BF9585797114}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Bea</RootNamespace>
+    <RootNamespace>Bea.Core</RootNamespace>
     <AssemblyName>Bea.Core</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -41,7 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Build\BuildEnvironment.cs" />
-    <Compile Include="Build\BuildExecutionContext.cs" />
     <Compile Include="Build\PreprocessorDefinitions.cs" />
     <Compile Include="Core\CxxLibraryTarget.cs" />
     <Compile Include="Core\CxxTarget.cs" />

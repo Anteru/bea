@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using Bea.Build;
 
@@ -9,60 +8,31 @@ using Microsoft.CodeAnalysis.Scripting;
 using System.Diagnostics;
 
 using System.Linq;
+using Microsoft.Extensions.CommandLineUtils;
 
 namespace Bea
 {
-	public class Globals
-	{
-		public Globals (IList<Target> targets)
-		{
-			targets_ = targets;
-		}
-
-		private IList<Target> targets_;
-
-		public Executable AddExecutable (string name)
-		{
-			var r = new Executable (name);
-			targets_.Add (r);
-			return r;
-		}
-
-		public Library AddLibrary (string name, LibraryType type)
-		{
-			var r = new Library (name, type);
-			targets_.Add (r);
-			return r;
-		}
-	}
 
 	class Program
 	{
-		static void Main (string [] args)
+		static void EvaluateProjects (IEnumerable<string> projectFiles, 
+			BuildExecutionContext buildExecContext)
 		{
-			string sourcePath = ".";
-			string targetPath = @"E:\Temp\Bea";
-
-			ScriptOptions scriptOptions = ScriptOptions.Default
-				.WithReferences (
-					typeof (Bea.Build.Generator).Assembly,
-					typeof (System.Object).Assembly)
-				.WithImports ("Bea.Build", "System")
-				.WithEmitDebugInformation (false);
-			
-			var projectFiles = System.IO.Directory.EnumerateFiles (sourcePath, "*.csx", System.IO.SearchOption.AllDirectories).ToList ();
-
-			Console.WriteLine ("Discovered {0} project(s)", projectFiles.Count);
-
-			IList<Target> targets = new List<Target> ();
-			var buildContext = new Globals (targets);
-
-			Console.WriteLine ("Evaluating projects ...");
 			Stopwatch sw = new Stopwatch ();
+			sw.Start ();
+
 			foreach (var projectFile in projectFiles) {
-				sw.Restart ();
 				Console.WriteLine ("Evaluating '{0}'", projectFile);
-				var script = CSharpScript.Create (System.IO.File.OpenRead (projectFile), scriptOptions, typeof (Globals));
+
+				ScriptOptions scriptOptions = ScriptOptions.Default
+					.WithReferences (
+						typeof (Bea.Build.Generator).Assembly,
+						typeof (System.Object).Assembly)
+					.WithImports ("Bea.Build", "System")
+					.WithEmitDebugInformation (false);
+
+				var script = CSharpScript.Create (System.IO.File.OpenRead (projectFile),
+					scriptOptions, typeof (BuildExecutionContext));
 
 				var compilationResult = script.Compile ();
 
@@ -76,16 +46,55 @@ namespace Bea
 					Console.ForegroundColor = oldConsoleColor;
 				}
 
-				script.RunAsync (buildContext).Wait ();
+				script.RunAsync (buildExecContext).Wait ();
 				Console.WriteLine ("Evaluation time: {0}", sw.Elapsed);
 			}
+		}
+
+		private static void Generate (string sourcePath, string targetPath)
+		{
+			var projectFiles = System.IO.Directory.EnumerateFiles (sourcePath, "*.csx", System.IO.SearchOption.AllDirectories).ToList ();
+			projectFiles.Sort ();
+
+			Console.WriteLine ("Discovered {0} project(s)", projectFiles.Count);
+
+			var buildEnv = new BuildEnvironment (sourcePath, targetPath);
+			var buildExecContext = buildEnv.ExecutionContext;
+
+			Console.WriteLine ("Evaluating projects ...");
+			Stopwatch sw = new Stopwatch ();
+
+			EvaluateProjects (projectFiles, buildExecContext);
 
 			sw.Restart ();
 			Console.WriteLine ("Generating build");
-			Generator g = new Generator ();
-			g.Generate (targets, sourcePath, targetPath);
+
+			buildEnv.Generate ();
 
 			Console.WriteLine ("Generation time: {0}", sw.Elapsed);
+		}
+
+		static void Main (string [] args)
+		{
+			CommandLineApplication app = new CommandLineApplication ();
+			app.Name = "bea-cli";
+			app.Description = "Bea command line runner";
+
+			app.HelpOption ("-?|-h|--help");
+
+			app.Command ("generate", (c) =>
+			{
+				var source = c.Argument ("source", "Source directory");
+				var target = c.Argument ("target", "Target directory");
+
+				c.OnExecute (() =>
+				{
+					Generate (source.Value, target.Value);
+					return 0;
+				});
+			});
+
+			app.Execute (args);
 		}
 	}
 }
