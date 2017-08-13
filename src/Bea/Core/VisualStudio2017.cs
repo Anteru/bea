@@ -349,9 +349,28 @@ namespace Bea.Core
 
 				var sourceFileGroup = new XElement ("ItemGroup");
 				foreach (var sourceFile in Target.SourceFiles) {
-					sourceFileGroup.Add (new XElement ("ClCompile",
-						new XAttribute ("Include", System.IO.Path.Combine (sourcePath_, sourceFile))));
-				}
+					var ext = System.IO.Path.GetExtension (sourceFile).ToLower ();
+					var fullPath = System.IO.Path.Combine (sourcePath_, sourceFile);
+
+					switch (ext) {
+						case ".c":
+						case ".cxx":
+						case ".cpp":
+						sourceFileGroup.Add (new XElement ("ClCompile",
+							new XAttribute ("Include", fullPath)));
+						break;
+
+						case ".h":
+						case ".hpp":
+						case ".hxx":
+							sourceFileGroup.Add (new XElement ("ClInclude",
+								new XAttribute ("Include", fullPath)));
+						break;
+
+						default:
+							break;
+					}
+			}
 
 				project.Add (sourceFileGroup);
 
