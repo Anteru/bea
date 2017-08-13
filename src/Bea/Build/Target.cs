@@ -25,4 +25,12 @@ namespace Bea.Build
 
 		public string Name { get; protected set; }
 	}
+
+	public class FileGenerator
+	{
+		public string Command { get; }
+		public string Arguments { get; }
+		public List<string> Dependencies { get; }
+		public List<string> Outputs { get; }
+	}
 }

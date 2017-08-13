@@ -13,14 +13,14 @@ namespace Bea.Core
 		public List<ITarget> Dependencies { get; set; } = new List<ITarget> ();
 		public string Name { get; }
 
-		public Property<string> OutputName { get; }
-		public Property<string> OutputSuffix { get; }
+		public string OutputName { get; }
+		public string OutputSuffix { get; }
 
 		public PreprocessorDefinitions PreprocessorDefinitions { get; }
 
 		public CxxTarget (CxxBinary target)
 		{
-			Name = target.OutputName.Value;
+			Name = target.Name;
 
 			OutputName = target.OutputName;
 			OutputSuffix = target.OutputSuffix;

@@ -259,6 +259,8 @@ namespace Bea.Core
 		{
 			protected IEnumerable<XElement> GetLinkSettings ()
 			{
+				var expressionParser = new ExpressionParser ();
+
 				List<XElement> result = new List<XElement> ();
 
 				foreach (var configPlatform in configurationPlatforms_.Enumerate ()) {
@@ -266,14 +268,18 @@ namespace Bea.Core
 							new XAttribute ("Condition", $"'$(Configuration)|$(Platform)'=='{configPlatform}'"),
 							new XElement ("LinkIncremental", false));
 
-					if (Target.OutputName.HasConfiguration (configPlatform.Configuration) || Target.OutputSuffix.HasConfiguration (configPlatform.Configuration)) {
-						var name = Target.OutputName.Get (configPlatform.Configuration);
-						var suffix = Target.OutputSuffix.Get (configPlatform.Configuration);
+					ExpressionEvaluationContext ctx = new ExpressionEvaluationContext
+					{
+						Configuration = configPlatform.Configuration,
+						Platform = configPlatform.Platform
+					};
+					
+					var name = expressionParser.Parse (Target.OutputName).Evaluate (ctx);
+					var suffix = expressionParser.Parse (Target.OutputSuffix).Evaluate (ctx);
 
-						element.Add (new XElement ("TargetName",
-							$"{name}{suffix}"));
-					}
-
+					element.Add (new XElement ("TargetName",
+						$"{name}{suffix}"));
+					
 					result.Add (element);
 				}
 

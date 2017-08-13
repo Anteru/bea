@@ -47,9 +47,9 @@
     <Compile Include="Core\CxxTarget.cs" />
     <Compile Include="Build\CxxTargets.cs" />
     <Compile Include="Core\CxxExecutableTarget.cs" />
+    <Compile Include="Core\ExpressionParser.cs" />
     <Compile Include="Core\IGenerator.cs" />
     <Compile Include="Core\ITarget.cs" />
-    <Compile Include="Build\Property.cs" />
     <Compile Include="Build\Target.cs" />
     <Compile Include="Core\PathHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

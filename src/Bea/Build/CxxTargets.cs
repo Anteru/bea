@@ -2,14 +2,14 @@
 {
 	public class CxxBinary : Target
 	{
-		public Property<string> OutputName { get; set; }
-		public Property<string> OutputSuffix { get; } = new Property<string> ("");
+		public string OutputName { get; set; }
+		public string OutputSuffix { get; set; } = string.Empty;
 		public PreprocessorDefinitions PreprocessorDefinitions { get; } = new PreprocessorDefinitions ();
 
 		public CxxBinary (string name)
 		{
 			Name = name;
-			OutputName = new Property<string> (Name);
+			OutputName = Name;
 		}
 	}
 

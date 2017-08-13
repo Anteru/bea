@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea-cli", "bea-cli\Bea-cli.csproj", "{D9DF1562-EC36-48E9-A4F3-5625DE874066}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea", "src\Bea\Bea.csproj", "{99EE47B7-BA31-43AD-B8DA-BF9585797114}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea", "Bea\Bea.csproj", "{99EE47B7-BA31-43AD-B8DA-BF9585797114}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea-cli", "src\bea-cli\Bea-cli.csproj", "{D9DF1562-EC36-48E9-A4F3-5625DE874066}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea.Test", "Bea.Test\Bea.Test.csproj", "{D1C814C3-5C19-46C1-BDB5-CBAE24D2D73E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bea.Test", "src\Bea.Test\Bea.Test.csproj", "{35AE4330-EA0F-4611-BA7E-308F15AC4F69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,18 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Release|Any CPU.Build.0 = Release|Any CPU
 		{99EE47B7-BA31-43AD-B8DA-BF9585797114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{99EE47B7-BA31-43AD-B8DA-BF9585797114}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99EE47B7-BA31-43AD-B8DA-BF9585797114}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99EE47B7-BA31-43AD-B8DA-BF9585797114}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1C814C3-5C19-46C1-BDB5-CBAE24D2D73E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1C814C3-5C19-46C1-BDB5-CBAE24D2D73E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1C814C3-5C19-46C1-BDB5-CBAE24D2D73E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1C814C3-5C19-46C1-BDB5-CBAE24D2D73E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9DF1562-EC36-48E9-A4F3-5625DE874066}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35AE4330-EA0F-4611-BA7E-308F15AC4F69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35AE4330-EA0F-4611-BA7E-308F15AC4F69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35AE4330-EA0F-4611-BA7E-308F15AC4F69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35AE4330-EA0F-4611-BA7E-308F15AC4F69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
