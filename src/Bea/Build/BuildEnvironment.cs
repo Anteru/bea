@@ -11,10 +11,10 @@ namespace Bea.Build
 			targetPath_ = targetPath;
 		}
 
-		private IList<Target> targets_ = new List<Target> ();
+		private readonly IList<Target> targets_ = new List<Target> ();
 		private Generator generator_ = new Generator ();
-		private string sourcePath_;
-		private string targetPath_;
+		private readonly string sourcePath_;
+		private readonly string targetPath_;
 
 		public BuildExecutionContext ExecutionContext { get; }
 

@@ -387,14 +387,14 @@ namespace Bea.Core
 				root.Save (targetPath_);
 			}
 
-			private string targetPath_;
-			private string sourcePath_;
+			private readonly string targetPath_;
+			private readonly string sourcePath_;
 		}
 
 		class Generator : IGenerator
 		{
-			private string targetPath_;
-			private string sourcePath_;
+			private readonly string targetPath_;
+			private readonly string sourcePath_;
 
 			private ConfigurationPlatforms configurationPlatforms_ = new ConfigurationPlatforms ();
 

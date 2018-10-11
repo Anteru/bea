@@ -76,9 +76,11 @@ namespace Bea
 
 		static void Main (string [] args)
 		{
-			CommandLineApplication app = new CommandLineApplication ();
-			app.Name = "bea-cli";
-			app.Description = "Bea command line runner";
+			CommandLineApplication app = new CommandLineApplication
+			{
+				Name = "bea-cli",
+				Description = "Bea command line runner"
+			};
 
 			app.HelpOption ("-?|-h|--help");
 
